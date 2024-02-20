@@ -9,7 +9,7 @@ public class GeneticAlgorithm {
     private double mutationProbability;
 
     // maximálny počet generácii
-    private int maxGenerations;
+    //private int maxGenerations;
 
     // počet lokácii
     private int numLocations ; // na začiatok dáme 10% z celkových umiestnení
@@ -26,7 +26,6 @@ public class GeneticAlgorithm {
     // pravdepodobnosť kríženia
     private static final double crossoverProbability = 0.8;
 
-    // Random generátor
     private static final Random random = new Random();
 
     // reprezentácia populácie
@@ -38,31 +37,29 @@ public class GeneticAlgorithm {
     /**
      * Konštruktor algoritmu.
      * @param populationSize, mutationProbability, maxGenerations, timeLimit
-     * TODO - dorobiť parametre na maxGenerations a timeLimit
      */
-    public GeneticAlgorithm(int populationSize, double mutationProbability, int maxGenerations, long timeLimit) {
+    public GeneticAlgorithm(int populationSize, double mutationProbability, long timeLimit) {
         this.populationSize = populationSize;
         this.mutationProbability = mutationProbability;
-        this.maxGenerations = maxGenerations;
+     //   this.maxGenerations = maxGenerations;
         this.timeLimit = timeLimit * 1000; // prevod zo sekúnd na milisekundy
-        //this.maxMutations = maxMutations;
     }
 
     /**
      * Priebeh algoritmu.
      */
     public void run() {
-        //pred inicializáciou vypočíta množstvo lokácii podľa maximálnej populácie
+        // pred inicializáciou vypočíta množstvo lokácii podľa maximálnej populácie
         this.calculateNumLocations();
 
-        //inicializujem populaciu
+        // inicializujem populaciu
         this.initializePopulation();
 
         // inicializácia počiatočného času
         long startTime = System.currentTimeMillis();
 
+        // algoritmus beží do stanoveného limitu
         while (System.currentTimeMillis() - startTime <= this.timeLimit) {
-            //for (int generation = 1; generation <= maxGenerations; generation++) {
             calculateFitness();
             int[][] newPopulation = new int[this.populationSize][this.numLocations];
 
@@ -93,22 +90,20 @@ public class GeneticAlgorithm {
             // Vypíš najlepšie riešenie pre každu generáciu
             int bestIndex = getBestSolutionIndex();
 
-            /*  System.out.println("Generation: " + generation + " |*/
             System.out.println("Best Cost = " + fitness[bestIndex]);
             System.out.println("Best Solution: " + Arrays.toString(population[bestIndex]));
-            //   }
         }
 
         System.out.println("Time limit: " + this.timeLimit / 1000 + " seconds");
-        //System.out.println("Time elapsed: " + (System.currentTimeMillis() - this.startTime) / 1000 + " seconds");
+        System.out.println("Time elapsed: " + (System.currentTimeMillis() - startTime)  + " miliseconds");
     }
 
     /**
      * Metóda na výpočet množstva umiestnení.
-     * 15% z celkovej popolácie.
+     * 10% z celkovej populácie.
      */
     private void calculateNumLocations() {
-        this.numLocations = (this.populationSize / 100) * 15;
+        this.numLocations = (this.populationSize / 100) * 10;
     }
 
     /**
@@ -138,14 +133,30 @@ public class GeneticAlgorithm {
     /**
      * Metóda na výpočet vzdialenosti(ceny) medzi mediánmi.
      * @param solution
-     * @return
+     * @return totalDistance
      */
     private int calculateCost(int[] solution) {
-        int cost = 0;
+        int totalDistance = 0;
+
+        // Pre každý bod zistíme pridelený p-median a pridáme jeho vzdialenosť k celkovej vzdialenosti
         for (int i = 0; i < this.numLocations; i++) {
-            cost += solution[i] * i;
+            int assignedPMedian = findAssignedPMedian(solution);
+            totalDistance += Math.abs(i - assignedPMedian); // Pridáme vzdialenosť medzi bodom a prideleným p-medianom
         }
-        return cost;
+
+        return totalDistance;
+    }
+
+    /**
+     * Metóda na nájdenie prideleného p-medianu pre daný bod.
+     */
+    private int findAssignedPMedian(int[] solution) {
+        for (int i = 0; i < this.numLocations; i++) {
+            if (solution[i] == 1) {
+                return i; // Index p-medianu, ktorý je pridelený danému bodu
+            }
+        }
+        return -1;
     }
 
     /**
@@ -171,7 +182,7 @@ public class GeneticAlgorithm {
 
     /**
      * Operácia uniformného kríženia.
-     * Náhodný výber bitu od jedného z rodičov -> každý bit potomka je zvolený od rodiča s pravdepodobnosťou 0.5.
+     * Náhodný výber bitu od jedného z rodičov -> každý bit potomka je zvolený od rodiča s pravdepodobnosťou 0,5.
      * */
     private void uniformCrossover(int parent1, int parent2, int[][] newPopulation, int index) {
         for (int i = 0; i < this.numLocations; i++) {
