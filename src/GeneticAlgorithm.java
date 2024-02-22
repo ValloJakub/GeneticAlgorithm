@@ -3,7 +3,7 @@ import java.util.Random;
 
 public class GeneticAlgorithm {
     // veľkosť populácie
-    private int populationSize;
+    private final int populationSize;
 
     // pravdepodobnosť mutácie
     private double mutationProbability;
@@ -20,11 +20,11 @@ public class GeneticAlgorithm {
     // počet mutácii
     private int maxMutations;
 
-    // počet mediánov // malo by byť zadané
-    private static final int p = 5;
+    // počet mediánov/umiestnení -> malo by byť zadané
+    private static final int pMedians = 5;
 
     // pravdepodobnosť kríženia
-    private static final double crossoverProbability = 0.8;
+    private static final double crossoverProbability = 0.5;
 
     private static final Random random = new Random();
 
@@ -36,12 +36,12 @@ public class GeneticAlgorithm {
 
     /**
      * Konštruktor algoritmu.
-     * @param populationSize, mutationProbability, maxGenerations, timeLimit
+     * @param populationSize, mutationProbability, timeLimit
      */
     public GeneticAlgorithm(int populationSize, double mutationProbability, long timeLimit) {
         this.populationSize = populationSize;
         this.mutationProbability = mutationProbability;
-     //   this.maxGenerations = maxGenerations;
+        //   this.maxGenerations = maxGenerations;
         this.timeLimit = timeLimit * 1000; // prevod zo sekúnd na milisekundy
     }
 
@@ -63,12 +63,15 @@ public class GeneticAlgorithm {
             calculateFitness();
             int[][] newPopulation = new int[this.populationSize][this.numLocations];
 
-            for (int i = 0; i < this.populationSize; i += 2) {
+            // Inicializácia najlepšieho indexu v rámci generácie
+            int bestIndex = getBestSolutionIndex();
+
+            for (int i = 0; i < this.populationSize; i += 2) { // +=2 kvôli tomu, že sa spracúvajú 2 jedinci(rodičia)
                 int parent1 = tournamentSelection();
                 int parent2 = tournamentSelection();
 
                 // Kríženie
-                if (random.nextDouble() < this.crossoverProbability) {
+                if (random.nextDouble() < crossoverProbability) {
                     uniformCrossover(parent1, parent2, newPopulation, i);
                 } else {
                     // Ak sa neskrížil, prekopírujeme ho do ďalšej generácie taký aký je
@@ -76,22 +79,36 @@ public class GeneticAlgorithm {
                 }
 
                 // Mutácia
-                if (random.nextDouble() < this.mutationProbability) {
+                if (random.nextDouble() < mutationProbability) {
                     mutate(newPopulation[i]);
                 }
-                if (random.nextDouble() < this.mutationProbability) {
+                if (random.nextDouble() < mutationProbability) {
                     mutate(newPopulation[i + 1]);
                 }
+
+                // Porovnáme fitness hodnoty nových jedincov a aktualizujeme najlepší index
+                if (fitness[i] < fitness[bestIndex]) {
+                    bestIndex = i;
+                }
+                if (fitness[i + 1] < fitness[bestIndex]) {
+                    bestIndex = i + 1;
+                }
+
+                System.out.println("Individual " + i + ": " + Arrays.toString(newPopulation[i]));
+                System.out.println("Fitness " + i + ": " + fitness[i]);
+
+                System.out.println("Individual " + (i + 1) + ": " + Arrays.toString(newPopulation[i + 1]));
+                System.out.println("Fitness " + (i + 1) + ": " + fitness[i + 1]);
             }
 
-            // nahraď populáciu zmutovanou populáciou
-            this.population = newPopulation;
-
-            // Vypíš najlepšie riešenie pre každu generáciu
-            int bestIndex = getBestSolutionIndex();
+            // náhrada populácie zmutovanou populáciou
+            population = newPopulation;
 
             System.out.println("Best Cost = " + fitness[bestIndex]);
+            // Prepis poľa do stringu
             System.out.println("Best Solution: " + Arrays.toString(population[bestIndex]));
+            System.out.println("-----------------------------------------------------------------");
+
         }
 
         System.out.println("Time limit: " + this.timeLimit / 1000 + " seconds");
@@ -114,9 +131,9 @@ public class GeneticAlgorithm {
         fitness = new int[this.populationSize];
 
         for (int i = 0; i < populationSize; i++) {
-            for (int j = 0; j < p; j++) {
+            for (int j = 0; j < pMedians; j++) {
                 int location = random.nextInt(this.numLocations);
-                this.population[i][location] = 1;
+                population[i][location] = 1;
             }
         }
     }
@@ -126,24 +143,22 @@ public class GeneticAlgorithm {
      */
     private void calculateFitness() {
         for (int i = 0; i < this.populationSize; i++) {
-            this.fitness[i] = calculateCost(this.population[i]);
+            fitness[i] = calculateCost(population[i]);
         }
     }
 
     /**
-     * Metóda na výpočet vzdialenosti(ceny) medzi mediánmi.
-     * @param solution
+     * Metóda na výpočet vzdialeností(ceny) medzi mediánmi.
      * @return totalDistance
      */
-    private int calculateCost(int[] solution) {
+    private int calculateCost(int[] individual) {
         int totalDistance = 0;
 
-        // Pre každý bod zistíme pridelený p-median a pridáme jeho vzdialenosť k celkovej vzdialenosti
+        // Pre každý bod zistíme pridelený p-medián a pridáme jeho vzdialenosť k celkovej vzdialenosti
         for (int i = 0; i < this.numLocations; i++) {
-            int assignedPMedian = findAssignedPMedian(solution);
-            totalDistance += Math.abs(i - assignedPMedian); // Pridáme vzdialenosť medzi bodom a prideleným p-medianom
+            int assignedPMedian = findAssignedPMedian(individual);
+            totalDistance += Math.abs(i - assignedPMedian); // Pridáme vzdialenosť medzi bodom a prideleným p-mediánom
         }
-
         return totalDistance;
     }
 
@@ -153,7 +168,7 @@ public class GeneticAlgorithm {
     private int findAssignedPMedian(int[] solution) {
         for (int i = 0; i < this.numLocations; i++) {
             if (solution[i] == 1) {
-                return i; // Index p-medianu, ktorý je pridelený danému bodu
+                return i; // Index p-mediánu, ktorý je pridelený danému bodu
             }
         }
         return -1;
@@ -173,7 +188,7 @@ public class GeneticAlgorithm {
 
         int bestCandidate = candidates[0];
         for (int i = 1; i < tournamentSize; i++) {
-            if (this.fitness[candidates[i]] < this.fitness[bestCandidate]) {
+            if (fitness[candidates[i]] < fitness[bestCandidate]) {
                 bestCandidate = candidates[i];
             }
         }
@@ -187,22 +202,22 @@ public class GeneticAlgorithm {
     private void uniformCrossover(int parent1, int parent2, int[][] newPopulation, int index) {
         for (int i = 0; i < this.numLocations; i++) {
             if (random.nextDouble() < 0.5) {
-                newPopulation[index][i] = this.population[parent1][i];
-                newPopulation[index + 1][i] = this.population[parent2][i];
+                newPopulation[index][i] = population[parent1][i];
+                newPopulation[index + 1][i] = population[parent2][i];
             } else {
-                newPopulation[index][i] = this.population[parent2][i];
-                newPopulation[index + 1][i] = this.population[parent1][i];
+                newPopulation[index][i] = population[parent2][i];
+                newPopulation[index + 1][i] = population[parent1][i];
             }
         }
     }
 
     /**
      * Operácia mutácie náhodnou zmenou priradených mediánov.
-     * Generuje číslo od 0 po numLocations-1, čo sa použije ako index kde, kde prebehne mutácia.
+     * Náhodná zmena bitov na opačné na vygenerovanej pozícii(inverzia).
      * */
-    private void mutate(int[] solution) {
+    private void mutate(int[] mutationPlace) {
         int locationToMutate = random.nextInt(this.numLocations);
-        solution[locationToMutate] = 1 - solution[locationToMutate];
+        mutationPlace[locationToMutate] = 1 - mutationPlace[locationToMutate];
     }
 
     /**
@@ -223,7 +238,12 @@ public class GeneticAlgorithm {
      * Kopírovanie rodičovských jedincov do novej generácie.
      */
     private void copyToNextGeneration(int parent1, int parent2, int[][] newPopulation, int index) {
-        System.arraycopy(this.population[parent1], 0, newPopulation[index], 0, this.numLocations);
-        System.arraycopy(this.population[parent2], 0, newPopulation[index + 1], 0, this.numLocations);
+        System.arraycopy(population[parent1], 0, newPopulation[index], 0, this.numLocations);
+        System.arraycopy(population[parent2], 0, newPopulation[index + 1], 0, this.numLocations);
     }
 }
+
+
+// TODO: výpočet ceny - počíta správne?
+// TODO: vstupy zo súboru
+// TODO: treba maticu vzdialeností?
