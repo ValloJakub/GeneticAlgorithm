@@ -4,36 +4,40 @@ import java.util.Random;
 import java.util.Scanner;
 
 public class GeneticAlgorithm {
-    // veľkosť populácie
+    // Veľkosť populácie
     private final int populationSize;
 
-    // pravdepodobnosť mutácie
-    private double mutationProbability;
+    // Pravdepodobnosť mutácie
+    private final double mutationProbability;
 
+    // Matica vzdialeností
     private int[][] distanceMatrix;
 
-    // počet lokácii
+    // Počet lokácii na umiestnenie
     private int numLocations ; // na začiatok dáme 10% z celkových umiestnení
 
-    // časový limit v sekundách
-    private long timeLimit; // na ukončenie behu algoritmu
+    // Časový limit v sekundách
+    private final long timeLimit; // na ukončenie behu algoritmu
 
-    // počet mediánov/umiestnení -> malo by byť zadané
-    private static final int pMedians = 5;
+    // Počet p-mediánov -> bude zadané
+    private static final int pMedians = 36;
 
-    // pravdepodobnosť kríženia
+    // Pravdepodobnosť kríženia
     private static final double crossoverProbability = 0.5;
 
     private static final Random random = new Random();
 
-    // reprezentácia populácie
+    // Reprezentácia populácie
     private static int[][] population;
 
-    // cena každého jedinca v populácii
+    // Cena každého jedinca v populácii
     private static int[] fitness;
 
+    // TODO: pozrieť sa na výpis riešenia -> zdá sa, že vypisuje rovnaké riešenie pre rôzne ceny
+    // TODO: overiť, či si správne riešenie aj s cenou ukladám ako hardcopy
+
     /**
-     * Konštruktor algoritmu.
+     * Konštruktor genetického algoritmu.
      * @param populationSize, mutationProbability, timeLimit
      */
     public GeneticAlgorithm(int populationSize, double mutationProbability, long timeLimit) {
@@ -43,19 +47,19 @@ public class GeneticAlgorithm {
     }
 
     /**
-     * Priebeh algoritmu.
+     * Beh algoritmu.
      */
     public void run() {
-        // pred inicializáciou vypočíta množstvo lokácii podľa maximálnej populácie
+        // Vytvorenie miest vhodných na umiestňovanie
         this.calculateNumLocations();
 
-        // inicializujem populaciu
+        // Inicializácia populácie
         this.initializePopulation();
 
-        // inicializácia počiatočného času
+        // Inicializácia počiatočného času
         long startTime = System.currentTimeMillis();
 
-        // algoritmus beží do stanoveného limitu
+        // Algoritmus beží do stanoveného limitu
         while (System.currentTimeMillis() - startTime <= this.timeLimit) {
             calculateFitness();
             int[][] newPopulation = new int[this.populationSize][this.numLocations];
@@ -63,7 +67,7 @@ public class GeneticAlgorithm {
             // Inicializácia najlepšieho indexu v rámci generácie
             int bestIndex = getBestSolutionIndex();
 
-            for (int i = 0; i < this.populationSize; i += 2) { // +=2 kvôli tomu, že sa spracúvajú 2 jedinci(rodičia)
+            for (int i = 0; i < this.populationSize; i += 2) { // spracúvajú sa 2 jedinci(rodičia)
                 int parent1 = tournamentSelection();
                 int parent2 = tournamentSelection();
 
@@ -82,45 +86,32 @@ public class GeneticAlgorithm {
                 if (random.nextDouble() < mutationProbability) {
                     mutate(newPopulation[i + 1]);
                 }
-
-                // Porovnáme fitness hodnoty nových jedincov a aktualizujeme najlepší index
-                if (fitness[i] < fitness[bestIndex]) {
-                    bestIndex = i;
-                }
-                if (fitness[i + 1] < fitness[bestIndex]) {
-                    bestIndex = i + 1;
-                }
-
-//                System.out.println("Individual " + i + ": " + Arrays.toString(newPopulation[i]));
-//                System.out.println("Fitness " + i + ": " + fitness[i]);
-//
-//                System.out.println("Individual " + (i + 1) + ": " + Arrays.toString(newPopulation[i + 1]));
-//                System.out.println("Fitness " + (i + 1) + ": " + fitness[i + 1]);
             }
-
-            // náhrada populácie zmutovanou populáciou
+            // Náhrada populácie novovytvorenou(zmutovanou) populáciou
             population = newPopulation;
+
+            // Aktualizácia najlepšieho riešenia(indexu)
+            bestIndex = getBestSolutionIndex();
 
             // Prepis poľa do stringu
             System.out.println("Best Solution: " + Arrays.toString(population[bestIndex]));
             System.out.println("Best Cost = " + fitness[bestIndex]);
-            System.out.println("Best index: " + bestIndex);
-            System.out.println("----------------------------------------------------------------------------------------------------------------------------------------------");
+//            System.out.println("Best index: " + bestIndex);
+            System.out.println("----------------------------");
         }
         System.out.println("Time limit: " + this.timeLimit / 1000 + " seconds");
         System.out.println("Time elapsed: " + (System.currentTimeMillis() - startTime)  + " miliseconds");
     }
 
     /**
-     * Metóda na výpočet množstva umiestnení.
-     * 10% z celkovej populácie.
+     * Metóda na pridelenie množstva umiestnení. Počet umiestnení je rovný veľkosti matice.
      */
     private void calculateNumLocations() {
-        this.numLocations = distanceMatrix.length; //(this.distanceMatrix.length / 100) * 10
+        this.numLocations = distanceMatrix.length;
     }
 
     /**
-     * Metóda na inicializáciu populácie. Náhodne rozmiestni p-mediány(umiestnenia)
+     * Metóda na inicializáciu populácie. Náhodne rozmiestni p-mediány
      */
     private void initializePopulation() {
         population = new int[this.populationSize][this.numLocations];
@@ -207,12 +198,9 @@ public class GeneticAlgorithm {
             pMediansChild2 += child2[i];
         }
 
-        // Kontrola, či majú potomkovia požadový počet umiestnení/p-mediánov
+        // Kontrola, či majú potomkovia požadovaný počet p-mediánov
         validateSolution(child1, pMediansChild1);
         validateSolution(child2, pMediansChild2);
-
-//        System.out.println("Child 1: " + Arrays.toString(child1));
-//        System.out.println("Child 2: " + Arrays.toString(child2));
 
         System.arraycopy(child1, 0, newPopulation[index], 0, this.numLocations);
         System.arraycopy(child2, 0, newPopulation[index + 1], 0, this.numLocations);
@@ -285,7 +273,6 @@ public class GeneticAlgorithm {
 
     /**
      * Metóda na načítanie matice vzdialeností zo súboru.
-     * @return distanceMatrix
      */
     public void loadDistanceMatrixFromFile(String fileName) {
         try {
@@ -294,12 +281,12 @@ public class GeneticAlgorithm {
             int rows = scanner.nextInt();
             int columns = scanner.nextInt();
 
-            distanceMatrix = new int[rows][columns];
+            this.distanceMatrix = new int[rows][columns];
 
             // Čítanie a napĺňanie
             for (int i = 0; i < rows; i++) {
                 for (int j = 0; j < columns; j++) {
-                    distanceMatrix[i][j] = scanner.nextInt();
+                    this.distanceMatrix[i][j] = scanner.nextInt();
                 }
             }
 
@@ -307,7 +294,8 @@ public class GeneticAlgorithm {
         } catch (FileNotFoundException e) {
             e.printStackTrace();
         }
-        /*         vypis matice    */
+
+        /*         Výpis matice    */
 //        for (int i = 0; i < distanceMatrix.length; i++) {
 //            for (int j = 0; j < distanceMatrix[0].length; j++) {
 //                System.out.print(distanceMatrix[i][j] + " ");
