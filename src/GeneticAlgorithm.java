@@ -33,8 +33,10 @@ public class GeneticAlgorithm {
     // Cena každého jedinca v populácii
     private static int[] fitness;
 
-    // TODO: pozrieť sa na výpis riešenia -> zdá sa, že vypisuje rovnaké riešenie pre rôzne ceny
-    // TODO: overiť, či si správne riešenie aj s cenou ukladám ako hardcopy
+
+    // Kópia najlepšieho riešenia a ceny (deepcopy)
+    int[] deepCopySolution = null;
+    int deepCopyCost = 0;
 
     /**
      * Konštruktor genetického algoritmu.
@@ -56,16 +58,16 @@ public class GeneticAlgorithm {
         // Inicializácia populácie
         this.initializePopulation();
 
+        // Aktualizácia najlepšieho riešenia
+        this.calculateFitness();
+        this.copyBestSolution();
+
         // Inicializácia počiatočného času
         long startTime = System.currentTimeMillis();
 
         // Algoritmus beží do stanoveného limitu
         while (System.currentTimeMillis() - startTime <= this.timeLimit) {
-            calculateFitness();
             int[][] newPopulation = new int[this.populationSize][this.numLocations];
-
-            // Inicializácia najlepšieho indexu v rámci generácie
-            int bestIndex = getBestSolutionIndex();
 
             for (int i = 0; i < this.populationSize; i += 2) { // spracúvajú sa 2 jedinci(rodičia)
                 int parent1 = tournamentSelection();
@@ -90,14 +92,20 @@ public class GeneticAlgorithm {
             // Náhrada populácie novovytvorenou(zmutovanou) populáciou
             population = newPopulation;
 
-            // Aktualizácia najlepšieho riešenia(indexu)
-            bestIndex = getBestSolutionIndex();
+            // Aktualizácia najlepšieho riešenia
+            this.calculateFitness();
+            this.copyBestSolution();
 
-            // Prepis poľa do stringu
-            System.out.println("Best Solution: " + Arrays.toString(population[bestIndex]));
-            System.out.println("Best Cost = " + fitness[bestIndex]);
-//            System.out.println("Best index: " + bestIndex);
-            System.out.println("----------------------------");
+
+            System.out.print("Location indexes: ");
+            for (int i = 0; i < this.deepCopySolution.length; i++) {
+                if (this.deepCopySolution[i] == 1) {
+                    System.out.print(i + " ");
+                }
+            }
+
+            System.out.println("\nCost = " + this.deepCopyCost);
+            System.out.println("--------------------------------");
         }
         System.out.println("Time limit: " + this.timeLimit / 1000 + " seconds");
         System.out.println("Time elapsed: " + (System.currentTimeMillis() - startTime)  + " miliseconds");
@@ -250,17 +258,17 @@ public class GeneticAlgorithm {
     }
 
     /**
-     * Nájdenie jedinca s minimálnou cenou riešenia(jeho index).
-     * @return bestIndex
+     * Kópia(hardcopy) najlepšieho rozmiestnenia spoločne s cenou
      */
-    private int getBestSolutionIndex() {
+    private void copyBestSolution() {
         int bestIndex = 0;
         for (int i = 1; i < this.populationSize; i++) {
             if (fitness[i] < fitness[bestIndex]) {
                 bestIndex = i;
             }
         }
-        return bestIndex;
+        this.deepCopyCost = fitness[bestIndex];
+        this.deepCopySolution = Arrays.copyOf(population[bestIndex], population[bestIndex].length);
     }
 
     /**
