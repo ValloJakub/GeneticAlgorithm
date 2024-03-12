@@ -4,47 +4,29 @@ import java.util.Random;
 import java.util.Scanner;
 
 public class GeneticAlgorithm {
-    // Veľkosť populácie
-    private final int populationSize;
-
-    // Pravdepodobnosť mutácie
-    private final double mutationProbability;
-
-    // Matica vzdialeností
-    private int[][] distanceMatrix;
-
-    // Počet lokácii na umiestnenie
-    private int numLocations ; // na začiatok dáme 10% z celkových umiestnení
-
-    // Časový limit v sekundách
-    private final long timeLimit; // na ukončenie behu algoritmu
-
-    // Počet p-mediánov -> bude zadané
-    private static final int pMedians = 36;
-
-    // Pravdepodobnosť kríženia
-    private static final double crossoverProbability = 0.5;
-
+    private final int populationSize;     // Veľkosť populácie
+    private final double mutationProbability;     // Pravdepodobnosť mutácie
+    private int[][] distanceMatrix;     // Matica vzdialeností
+    private int numLocations ;      // Počet lokácii na umiestnenie ; na začiatok dáme 10% z celkových umiestnení
+    private final long timeLimit;     // na ukončenie behu algoritmu ; Časový limit v sekundách
+    private static int pMedians;      // Počet p-mediánov
+    private double crossoverProbability;     // Pravdepodobnosť kríženia
     private static final Random random = new Random();
+    private static int[][] population;      // Reprezentácia populácie
+    private static int[] fitness;   // Cena každého jedinca v populácii
 
-    // Reprezentácia populácie
-    private static int[][] population;
-
-    // Cena každého jedinca v populácii
-    private static int[] fitness;
-
-
-    // Kópia najlepšieho riešenia a ceny (deepcopy)
-    int[] deepCopySolution = null;
-    int deepCopyCost = 0;
+    private int[] deepCopySolution = null;      // Kópia najlepšieho riešenia (deepcopy)
+    private int deepCopyCost = 0;    // Kópia najlepšej ceny (deepcopy)
 
     /**
      * Konštruktor genetického algoritmu.
      * @param populationSize, mutationProbability, timeLimit
      */
-    public GeneticAlgorithm(int populationSize, double mutationProbability, long timeLimit) {
+    public GeneticAlgorithm(int populationSize, double mutationProbability, double crossoverProbability, long timeLimit) {
+        this.loadDistanceMatrixFromFile("distances/S_CZA_0315_0001_D.txt");
         this.populationSize = populationSize;
         this.mutationProbability = mutationProbability;
+        this.crossoverProbability = crossoverProbability;
         this.timeLimit = timeLimit * 1000; // prevod zo sekúnd na milisekundy
     }
 
@@ -54,6 +36,9 @@ public class GeneticAlgorithm {
     public void run() {
         // Vytvorenie miest vhodných na umiestňovanie
         this.calculateNumLocations();
+
+        // Výpočet zdrojov
+        this.calculatePMedians();
 
         // Inicializácia populácie
         this.initializePopulation();
@@ -116,6 +101,13 @@ public class GeneticAlgorithm {
      */
     private void calculateNumLocations() {
         this.numLocations = distanceMatrix.length;
+    }
+
+    /**
+     * Metóda na výpočet umiestňovacích zdrojov (12% zo všetkých lokalít)
+     */
+    private void calculatePMedians() {
+        pMedians = (this.numLocations / 100) * 12;
     }
 
     /**
@@ -280,6 +272,13 @@ public class GeneticAlgorithm {
     }
 
     /**
+     * Metóda na vrátenie ceny riešenia.
+     */
+    public int getSolutionCost() {
+        return this.deepCopyCost;
+    }
+
+    /**
      * Metóda na načítanie matice vzdialeností zo súboru.
      */
     public void loadDistanceMatrixFromFile(String fileName) {
@@ -302,13 +301,34 @@ public class GeneticAlgorithm {
         } catch (FileNotFoundException e) {
             e.printStackTrace();
         }
+    }
 
-        /*         Výpis matice    */
-//        for (int i = 0; i < distanceMatrix.length; i++) {
-//            for (int j = 0; j < distanceMatrix[0].length; j++) {
-//                System.out.print(distanceMatrix[i][j] + " ");
-//            }
-//            System.out.println();
-//        }
+    /**
+     * Metóda na vrátenie veľkosti populácie.
+     */
+    public int getPopulationSize() {
+        return this.populationSize;
+    }
+
+    /**
+     * Metóda na vrátenie pravdepodobnosti mutácie.
+     */
+    public double getMutationProbability() {
+        return this.mutationProbability;
+
+    }
+
+    /**
+     * Metóda na vrátenie pravdepodobnosti kríženia.
+     */
+    public double getCrossoverProbability() {
+        return this.crossoverProbability;
+    }
+
+    /**
+     * Metóda na vrátenie časového limitu.
+     */
+    public long getTimeLimit() {
+        return this.populationSize;
     }
 }
