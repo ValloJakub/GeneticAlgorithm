@@ -19,7 +19,7 @@ public class SupraMethod {
         this.p_max = geneticAlgorithm.getSolutionCost();
         this.initialPointCost = p_max;
 
-        this.B = 0.25;
+        this.B = 0.5;
         this.C = 0.3;
         this.max_s = s; // Počet bodov na vytvorenie
 
@@ -53,8 +53,8 @@ public class SupraMethod {
         }
 
         System.out.println("Statistical gradient parameters:");
-        System.out.print("Population size: " + statisticalGradient[0] + ", Mutation probability: " + statisticalGradient[1] + ", Crossover probability: "
-                + statisticalGradient[2] + ", Time limit: " + statisticalGradient[3] + " sec.\n");
+        System.out.print("Population size: " + (int)statisticalGradient[0] + ", Mutation probability: " + statisticalGradient[1] + ", Crossover probability: "
+                + statisticalGradient[2] + ", Time limit: " + (int)statisticalGradient[3] + " sec.\n");
 
 
         // Druhá fáza
@@ -81,7 +81,6 @@ public class SupraMethod {
                 pkj[0] = 2;
             }
 
-
             // Mutácia
             if (pkj[1] > 1) {
                 pkj[1] = 1;
@@ -99,11 +98,11 @@ public class SupraMethod {
             }
 
             // Časový limit
-            if (pkj[3] > 1200) {
-                pkj[3] = 1200;
+            if (pkj[3] > 6) {
+                pkj[3] = 6;
             }
-            if (pkj[3] < 60) {
-                pkj[3] = 60;
+            if (pkj[3] < 3) {
+                pkj[3] = 3;
             }
         }
         return pkj;
@@ -130,6 +129,8 @@ public class SupraMethod {
 
         // Aktualizácia hodnoty štatistického gradientu r
         for (int i = 0; i < VECTOR_SIZE; i++) {
+//            System.out.println(this.initialPointCost + " - " + cost + " * " + newPoint[i] + " - " + pk[i]);
+//            System.out.println((this.initialPointCost - cost) * (newPoint[i] - pk[i]));
             statisticalGradient[i] += (this.initialPointCost - cost) * (newPoint[i] - pk[i]);
         }
 
@@ -165,6 +166,6 @@ public class SupraMethod {
      */
     private long generateTimeLimit() {
 //        return (random.nextInt(1140) + 60); // Generovanie od 60 po 1200 sekúnd
-        return (random.nextInt(3) + 2); // 2 až 5 sekúnd
+        return (random.nextInt(5) + 2); // 2 až 7 sekúnd
     }
 }

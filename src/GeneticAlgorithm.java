@@ -82,18 +82,18 @@ public class GeneticAlgorithm {
             this.copyBestSolution();
 
 
-            System.out.print("Location indexes: ");
-            for (int i = 0; i < this.deepCopySolution.length; i++) {
-                if (this.deepCopySolution[i] == 1) {
-                    System.out.print(i + " ");
-                }
-            }
+//            System.out.print("Location indexes: ");
+//            for (int i = 0; i < this.deepCopySolution.length; i++) {
+//                if (this.deepCopySolution[i] == 1) {
+//                    System.out.print(i + " ");
+//                }
+//            }
 
-            System.out.println("\nCost = " + this.deepCopyCost);
-            System.out.println("--------------------------------");
+            System.out.println("Cost = " + this.deepCopyCost);
+            System.out.println("--------------------------------\n");
         }
-        System.out.println("Time limit: " + this.timeLimit / 1000 + " seconds");
-        System.out.println("Time elapsed: " + (System.currentTimeMillis() - startTime)  + " miliseconds");
+//        System.out.println("Time limit: " + this.timeLimit / 1000 + " seconds");
+//        System.out.println("Time elapsed: " + (System.currentTimeMillis() - startTime)  + " miliseconds");
     }
 
     /**
@@ -326,9 +326,9 @@ public class GeneticAlgorithm {
     }
 
     /**
-     * Metóda na vrátenie časového limitu.
+     * Metóda na vrátenie časového limitu v sekundách.
      */
     public long getTimeLimit() {
-        return this.populationSize;
+        return this.timeLimit / 1000;
     }
 }
