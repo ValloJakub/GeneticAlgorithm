@@ -16,7 +16,7 @@ public class GeneticAlgorithm {
     private static int[] fitness;   // Cena každého jedinca v populácii
 
     private int[] deepCopySolution = null;      // Kópia najlepšieho riešenia (deepcopy)
-    private int deepCopyCost = 0;    // Kópia najlepšej ceny (deepcopy)
+    private int deepCopyCost = Integer.MAX_VALUE;    // Kópia najlepšej ceny (deepcopy)
 
     /**
      * Konštruktor genetického algoritmu.
@@ -70,7 +70,7 @@ public class GeneticAlgorithm {
                 if (random.nextDouble() < mutationProbability) {
                     mutate(newPopulation[i]);
                 }
-                if (random.nextDouble() < mutationProbability) {
+                if (i + 1 < newPopulation.length && random.nextDouble() < mutationProbability) {    // Kontrola v prípade nepárnej populácie
                     mutate(newPopulation[i + 1]);
                 }
             }
@@ -90,7 +90,7 @@ public class GeneticAlgorithm {
 //            }
 
             System.out.println("Cost = " + this.deepCopyCost);
-            System.out.println("--------------------------------\n");
+            System.out.println("Population: " + this.populationSize + " Mutation: " + this.mutationProbability + " Crossover: " + this.crossoverProbability + " TimeLimit: " + this.timeLimit / 1000);
         }
 //        System.out.println("Time limit: " + this.timeLimit / 1000 + " seconds");
 //        System.out.println("Time elapsed: " + (System.currentTimeMillis() - startTime)  + " miliseconds");
@@ -203,7 +203,10 @@ public class GeneticAlgorithm {
         validateSolution(child2, pMediansChild2);
 
         System.arraycopy(child1, 0, newPopulation[index], 0, this.numLocations);
-        System.arraycopy(child2, 0, newPopulation[index + 1], 0, this.numLocations);
+
+        if (index + 1 < newPopulation.length) { // Kontrola v prípade nepárnej populácie
+            System.arraycopy(child2, 0, newPopulation[index + 1], 0, this.numLocations);
+        }
     }
 
     /**
@@ -259,8 +262,10 @@ public class GeneticAlgorithm {
                 bestIndex = i;
             }
         }
-        this.deepCopyCost = fitness[bestIndex];
-        this.deepCopySolution = Arrays.copyOf(population[bestIndex], population[bestIndex].length);
+        if (fitness[bestIndex] < this.deepCopyCost) {
+            this.deepCopyCost = fitness[bestIndex];
+            this.deepCopySolution = Arrays.copyOf(population[bestIndex], population[bestIndex].length);
+        }
     }
 
     /**
@@ -268,7 +273,11 @@ public class GeneticAlgorithm {
      */
     private void copyToNextGeneration(int parent1, int parent2, int[][] newPopulation, int index) {
         System.arraycopy(population[parent1], 0, newPopulation[index], 0, this.numLocations);
-        System.arraycopy(population[parent2], 0, newPopulation[index + 1], 0, this.numLocations);
+
+        // // Kontrola v prípade nepárnej populácie
+        if (index + 1 < newPopulation.length) {
+            System.arraycopy(population[parent2], 0, newPopulation[index + 1], 0, this.numLocations);
+        }
     }
 
     /**
@@ -296,7 +305,6 @@ public class GeneticAlgorithm {
                     this.distanceMatrix[i][j] = scanner.nextInt();
                 }
             }
-
             scanner.close();
         } catch (FileNotFoundException e) {
             e.printStackTrace();
