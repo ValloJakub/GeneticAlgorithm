@@ -3,21 +3,22 @@ import java.util.Random;
 public class SupraMethod {
     private static final Random random = new Random();
     private static final int MAX_COUNT_AB = 5;   // Maximálny počet krokov bez zmeny
+    private static final int MAX_ITERATIONS = 5;   // Počet iterácii, čo sa vykonajú v metóde Supra
     private final double B; // Parameter zabúdania
     private final double C; // Parameter učenia
     private final int max_s; // Maximálny počet generovaných bodov
-    private double[] w; // Parameter učenia/pamäť
+    private double[] w; // Pamäť
     private static final int VECTOR_SIZE = 4;   // Veľkosť vektorov určená podľa počtu potrebných parametrov
     private int p_max; // Hodnota doteraz najlepšieho nájdeného riešenia
-    private double[] pk; // Vektor parametrov počiatočného bodu
+    private double[] initialPoint; // Vektor parametrov počiatočného bodu
     private int initialPointCost; // Na uloženie hodnoty účelovej funkcie počiatočného bodu
     private double[] statisticalGradient; // Štatistický gradient r
 
     public SupraMethod(int s, double B, double C) {
-        GeneticAlgorithm geneticAlgorithm = new GeneticAlgorithm(200, 0.3, 0.5, 30);
+        GeneticAlgorithm geneticAlgorithm = new GeneticAlgorithm(150, 0.3, 0.5, 30);
         geneticAlgorithm.run();
         this.initialPointCost = geneticAlgorithm.getSolutionCost();
-        this.p_max = initialPointCost;
+        this.p_max = Integer.MAX_VALUE;
 
         this.B = B;
         this.C = C;
@@ -26,19 +27,22 @@ public class SupraMethod {
         this.w = new double[]{0.0, 0.0, 0.0, 0.0};                       // Na začiatku pamäť prázdna/neinicializovaná
         this.statisticalGradient = new double[]{0.0, 0.0, 0.0, 0.0};     // Na začiatku štatistický gradient prázdny/neinicializovaný
 
-        this.pk = new double[]{geneticAlgorithm.getPopulationSize(), geneticAlgorithm.getMutationProbability(), geneticAlgorithm.getCrossoverProbability(), geneticAlgorithm.getTimeLimit()};
+        this.initialPoint = new double[]{geneticAlgorithm.getPopulationSize(), geneticAlgorithm.getMutationProbability(),
+                                            geneticAlgorithm.getCrossoverProbability(), geneticAlgorithm.getTimeLimit()};
     }
 
     /**
      * Beh metódy.
      */
     public void runSupraMethod() {
-        this.firstPhase();
-        double[] bestPoint = this.secondPhase(statisticalGradient);
+        for (int i = 0; i < MAX_ITERATIONS; i++) {  //
+            this.firstPhase();
+            this.secondPhase(statisticalGradient);  // Po každej iterácii sa výstupný bod z prvej fázy uloží ako nový počiatočný bod
+        }
 
-        System.out.println("Best point: ");
-        System.out.println("Population: " + (int) bestPoint[0] + ", Mutation probability: " + bestPoint[1] + ", Crossover probability: "
-                + bestPoint[2] + ", Time limit: " + (int) bestPoint[3] + " sec.");
+        System.out.println("Best point cost: " + p_max);
+        System.out.println("Population: " + (int) this.initialPoint[0] + ", Mutation probability: " + this.initialPoint[1] + ", Crossover probability: "
+                + this.initialPoint[2] + ", Time limit: " + (int) this.initialPoint[3] + " sec.");
     }
 
     /**
@@ -73,12 +77,12 @@ public class SupraMethod {
      * Druhá fáza metódy Supra.
      * Výstupom druhej fázy je bod s najlepšími nastaveniami parametrov(najnižšia hodnota účelovej funkcie).
      */
-    private double[] secondPhase(double[] statisticalGradient) {
+    private void secondPhase(double[] statisticalGradient) {
         int CountAb = 0;      // Hodnota krokov od posledného zlepšenia
         double[] alpha = new double[]{generatePopulationSize(), generateMutationProbability(), generateCrossoverProbability(), generateTimeLimit()};         // Dĺžka kroku
 
         // Výstupný bod s najlepšou hodnotou účelovej funkcie
-        double[] bestPoint = pk;
+        double[] bestPoint = calculateNewPoint(alpha, statisticalGradient);
         while (CountAb < MAX_COUNT_AB) {
             // Vypočítaj nový bod p = pk + alpha * r / ||r||
             double[] calculatedPoint = calculateNewPoint(alpha, statisticalGradient);
@@ -88,29 +92,25 @@ public class SupraMethod {
             geneticAlgorithm.run();
             int newCost = geneticAlgorithm.getSolutionCost();
 
-            // Aktualizácia hodnôt štatistického gradientu(r), pamäte(w) a ceny bodu
-            //updateValues(calculatedPoint, newCost);
-
             // Ak F(p) < F(p_max), aktualizuj hodnotu p_max a resetuj PocetAb
             if (newCost < p_max) {
                 p_max = newCost;
                 bestPoint = calculatedPoint;
-                CountAb = 0;
-            } else {
-                CountAb++;
             }
 
             // Aktualizuj hodnotu alpha; Dĺžku kroku skrátime o polovicu
             for (int i = 0; i < alpha.length; i++) {
                 alpha[i] /= 2;
             }
+
+            CountAb++;
         }
 
         // Po skončení druhej fázy premazávame pamäť
         this.w = new double[]{0.0, 0.0, 0.0, 0.0};
         this.statisticalGradient = new double[]{0.0, 0.0, 0.0, 0.0};
 
-        return bestPoint;
+        this.initialPoint = bestPoint;
     }
 
     /**
@@ -120,7 +120,7 @@ public class SupraMethod {
         double[] calculatedPoint = new double[VECTOR_SIZE];
 
         for (int i = 0; i < VECTOR_SIZE; i++) {
-            calculatedPoint[i] = pk[i] + alpha[i] * Math.signum(statisticalGradient[i]);   // Signum na zistenie smeru, či budeme zväčšovať či zmenšovať
+            calculatedPoint[i] = initialPoint[i] + alpha[i] * Math.signum(statisticalGradient[i]);   // Signum na zistenie smeru, či budeme zväčšovať či zmenšovať
         }
 
         // Úprava neprípustných hodnôt
@@ -133,12 +133,12 @@ public class SupraMethod {
      * Metóda na vytvorenie nového bodu p^kj na základe vzťahu p^kj = p^k +r^j.
      */
     private double[] createNewPoint(double[] r) {
-        double[] pkj = new double[VECTOR_SIZE];
+        double[] newPoint = new double[VECTOR_SIZE];
 
         for (int i = 0; i < VECTOR_SIZE; i++) {
-            pkj[i] = pk[i] + r[i];
+            newPoint[i] = initialPoint[i] + r[i];
         }
-        return this.fixUnfeasibleValues(pkj);
+        return this.fixUnfeasibleValues(newPoint);
     }
 
     /**
@@ -160,8 +160,8 @@ public class SupraMethod {
         if (vector[1] > 1) {
             vector[1] = 1;
         }
-        if (vector[1] < 0.02) {
-            vector[1] = 0.02;
+        if (vector[1] < 0) {
+            vector[1] = 0;
         }
 
         // Kríženie
@@ -173,11 +173,11 @@ public class SupraMethod {
         }
 
         // Časový limit
-        if (vector[3] > 40) {
-            vector[3] = 40;
+        if (vector[3] > 300) {
+            vector[3] = 300;
         }
-        if (vector[3] < 15) {
-            vector[3] = 15;
+        if (vector[3] < 20) {
+            vector[3] = 20;
         }
         return vector;
     }
@@ -208,12 +208,12 @@ public class SupraMethod {
 
         // Aktualizácia hodnoty štatistického gradientu r
         for (int i = 0; i < VECTOR_SIZE; i++) {
-            statisticalGradient[i] += (cost - this.initialPointCost) * (newPoint[i] - pk[i]);
+            statisticalGradient[i] += (cost - this.initialPointCost) * (newPoint[i] - initialPoint[i]);
         }
 
         // Aktualizácia hodnoty vektoru w
         for (int i = 0; i < VECTOR_SIZE; i++) {
-            w[i] = B * w[i] + C * ((cost - this.initialPointCost) * (newPoint[i] - pk[i]));
+            w[i] = B * w[i] + C * ((cost - this.initialPointCost) * (newPoint[i] - initialPoint[i]));
         }
     }
 
@@ -256,7 +256,7 @@ public class SupraMethod {
      * Horná hranica časového limitu je 1200 sekúnd (20 minút)
      */
     private int generateTimeLimit() {
-        int pkValue = 40;
+        int pkValue = 300;
         int A = pkValue / 10;
         return random.nextInt(A * 2 + 1) - A;
     }

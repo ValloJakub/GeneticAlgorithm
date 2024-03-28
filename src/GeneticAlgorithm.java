@@ -14,7 +14,6 @@ public class GeneticAlgorithm {
     private static final Random random = new Random();
     private static int[][] population;      // Reprezentácia populácie
     private static int[] fitness;   // Cena každého jedinca v populácii
-
     private int[] deepCopySolution = null;      // Kópia najlepšieho riešenia (deepcopy)
     private int deepCopyCost = Integer.MAX_VALUE;    // Kópia najlepšej ceny (deepcopy)
 
@@ -23,7 +22,7 @@ public class GeneticAlgorithm {
      * @param populationSize, mutationProbability, timeLimit
      */
     public GeneticAlgorithm(int populationSize, double mutationProbability, double crossoverProbability, long timeLimit) {
-        this.loadDistanceMatrixFromFile("distances/S_CZA_0315_0001_D.txt");
+        this.loadDistanceMatrixFromFile("distances/S_CPO_0664_0001_D.txt");
         this.populationSize = populationSize;
         this.mutationProbability = mutationProbability;
         this.crossoverProbability = crossoverProbability;
@@ -62,7 +61,7 @@ public class GeneticAlgorithm {
                 if (random.nextDouble() < crossoverProbability) {
                     uniformCrossover(parent1, parent2, newPopulation, i);
                 } else {
-                    // Ak sa neskrížil, prekopírujeme ho do ďalšej generácie taký aký je
+                    // Ak sa neskrížil, prekopírujeme ho do ďalšej generácie takého, aký je
                     copyToNextGeneration(parent1, parent2, newPopulation, i);
                 }
 
@@ -104,14 +103,14 @@ public class GeneticAlgorithm {
     }
 
     /**
-     * Metóda na výpočet umiestňovacích zdrojov (12% zo všetkých lokalít)
+     * Metóda na výpočet umiestňovacích zdrojov (12% zo všetkých lokalít).
      */
     private void calculatePMedians() {
-        pMedians = (this.numLocations / 100) * 12;
+        pMedians = (this.numLocations / 100) * 30;
     }
 
     /**
-     * Metóda na inicializáciu populácie. Náhodne rozmiestni p-mediány
+     * Metóda na inicializáciu populácie. Náhodne rozmiestni p-mediány.
      */
     private void initializePopulation() {
         population = new int[this.populationSize][this.numLocations];
@@ -237,7 +236,7 @@ public class GeneticAlgorithm {
      * Operácia mutácie výmenou priradených mediánov.
      * Výmena bitov na dvoch pozíciach(SWAP).
      * */
-    private void mutate(int[] mutationPlace) {
+    private void mutate(int[] newPopulation) {
         int position1 = random.nextInt(this.numLocations);
         int position2 = random.nextInt(this.numLocations);
 
@@ -247,9 +246,9 @@ public class GeneticAlgorithm {
         }
 
         // Výmena hodnôt na vybraných pozíciach
-        int temp = mutationPlace[position1];
-        mutationPlace[position1] = mutationPlace[position2];
-        mutationPlace[position2] = temp;
+        int temp = newPopulation[position1];
+        newPopulation[position1] = newPopulation[position2];
+        newPopulation[position2] = temp;
     }
 
     /**
