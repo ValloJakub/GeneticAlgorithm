@@ -3,7 +3,7 @@ import java.util.Random;
 public class SupraMethod {
     private static final Random random = new Random();
     private static final int MAX_COUNT_AB = 5;   // Maximálny počet krokov bez zmeny
-    private static final int MAX_ITERATIONS = 5;   // Počet iterácii, čo sa vykonajú v metóde Supra
+    private static final int MAX_ITERATIONS = 10;   // Počet iterácii, čo sa vykonajú v metóde Supra
     private final double B; // Parameter zabúdania
     private final double C; // Parameter učenia
     private final int max_s; // Maximálny počet generovaných bodov
@@ -15,7 +15,7 @@ public class SupraMethod {
     private double[] statisticalGradient; // Štatistický gradient r
 
     public SupraMethod(int s, double B, double C) {
-        GeneticAlgorithm geneticAlgorithm = new GeneticAlgorithm(150, 0.3, 0.5, 30);
+        GeneticAlgorithm geneticAlgorithm = new GeneticAlgorithm(50, 0.2, 0.2, 20);
         geneticAlgorithm.run();
         this.initialPointCost = geneticAlgorithm.getSolutionCost();
         this.p_max = Integer.MAX_VALUE;
@@ -67,10 +67,6 @@ public class SupraMethod {
 
             j++;
         }
-
-        System.out.println("Statistical gradient parameters:");
-        System.out.print("Population size: " + (int) statisticalGradient[0] + ", Mutation probability: " + statisticalGradient[1] + ", Crossover probability: "
-                + statisticalGradient[2] + ", Time limit: " + (int) statisticalGradient[3] + " sec.\n");
     }
 
     /**
@@ -78,7 +74,7 @@ public class SupraMethod {
      * Výstupom druhej fázy je bod s najlepšími nastaveniami parametrov(najnižšia hodnota účelovej funkcie).
      */
     private void secondPhase(double[] statisticalGradient) {
-        int CountAb = 0;      // Hodnota krokov od posledného zlepšenia
+        int CountAb = 0;      // Počet krokov od posledného zlepšenia
         double[] alpha = new double[]{generatePopulationSize(), generateMutationProbability(), generateCrossoverProbability(), generateTimeLimit()};         // Dĺžka kroku
 
         // Výstupný bod s najlepšou hodnotou účelovej funkcie
@@ -220,7 +216,7 @@ public class SupraMethod {
     /**
      * Generovanie náhodnej veľkosti populácie v okolí bodu.
      * A je maximálna veľkosť generovanej zmeny parametra (10%).
-     * Horná hranica populácie je 1000
+     * Horná hranica populácie je 1000.
      */
     private int generatePopulationSize() {
         int pkValue = 1000;
@@ -231,7 +227,7 @@ public class SupraMethod {
     /**
      * Generovanie náhodnej pravdepodobnosti mutácie v okolí bodu.
      * A je maximálna veľkosť generovanej zmeny parametra (10%).
-     * Horná hranica mutácie je 1
+     * Horná hranica mutácie je 1.
      */
     private double generateMutationProbability() {
         double pkValue = 1;
@@ -242,7 +238,7 @@ public class SupraMethod {
     /**
      * Generovanie náhodnej pravdepodobnosti kríženia v okolí bodu.
      * A je maximálna veľkosť generovanej zmeny parametra (10%).
-     * Horná hranica kríženia je 1
+     * Horná hranica kríženia je 1.
      */
     private double generateCrossoverProbability() {
         double pkValue = 1;
@@ -253,11 +249,18 @@ public class SupraMethod {
     /**
      * Generovanie náhodného časového limitu v okolí bodu.
      * A je maximálna veľkosť generovanej zmeny parametra (10%).
-     * Horná hranica časového limitu je 1200 sekúnd (20 minút)
+     * Horná hranica časového limitu je 1200 sekúnd (20 minút).
      */
     private int generateTimeLimit() {
         int pkValue = 300;
         int A = pkValue / 10;
         return random.nextInt(A * 2 + 1) - A;
+    }
+
+    /**
+     * Metóda na vrátenie ceny najlepšieho riešenia.
+     */
+    public double getP_max() {
+        return this.p_max;
     }
 }

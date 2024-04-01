@@ -22,7 +22,7 @@ public class GeneticAlgorithm {
      * @param populationSize, mutationProbability, timeLimit
      */
     public GeneticAlgorithm(int populationSize, double mutationProbability, double crossoverProbability, long timeLimit) {
-        this.loadDistanceMatrixFromFile("distances/S_CPO_0664_0001_D.txt");
+        this.loadDistanceMatrixFromFile("distances/S_CBA_0087_0001_D.txt");
         this.populationSize = populationSize;
         this.mutationProbability = mutationProbability;
         this.crossoverProbability = crossoverProbability;
@@ -80,7 +80,6 @@ public class GeneticAlgorithm {
             this.calculateFitness();
             this.copyBestSolution();
 
-
 //            System.out.print("Location indexes: ");
 //            for (int i = 0; i < this.deepCopySolution.length; i++) {
 //                if (this.deepCopySolution[i] == 1) {
@@ -91,8 +90,6 @@ public class GeneticAlgorithm {
             System.out.println("Cost = " + this.deepCopyCost);
             System.out.println("Population: " + this.populationSize + " Mutation: " + this.mutationProbability + " Crossover: " + this.crossoverProbability + " TimeLimit: " + this.timeLimit / 1000);
         }
-//        System.out.println("Time limit: " + this.timeLimit / 1000 + " seconds");
-//        System.out.println("Time elapsed: " + (System.currentTimeMillis() - startTime)  + " miliseconds");
     }
 
     /**
@@ -103,10 +100,10 @@ public class GeneticAlgorithm {
     }
 
     /**
-     * Metóda na výpočet umiestňovacích zdrojov (12% zo všetkých lokalít).
+     * Metóda na výpočet umiestňovacích zdrojov.
      */
     private void calculatePMedians() {
-        pMedians = (this.numLocations / 100) * 30;
+        pMedians = (this.numLocations / 100) * 10;
     }
 
     /**
