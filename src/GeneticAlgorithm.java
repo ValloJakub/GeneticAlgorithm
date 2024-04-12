@@ -21,12 +21,14 @@ public class GeneticAlgorithm {
      * Konštruktor genetického algoritmu.
      * @param populationSize, mutationProbability, timeLimit
      */
-    public GeneticAlgorithm(int populationSize, double mutationProbability, double crossoverProbability, long timeLimit) {
-        this.loadDistanceMatrixFromFile("distances/S_CBA_0087_0001_D.txt");
+    public GeneticAlgorithm(String fileName, int pmedians, int populationSize, double mutationProbability, double crossoverProbability, long timeLimit) {
+        this.loadDistanceMatrixFromFile(fileName);
         this.populationSize = populationSize;
         this.mutationProbability = mutationProbability;
         this.crossoverProbability = crossoverProbability;
         this.timeLimit = timeLimit * 1000; // prevod zo sekúnd na milisekundy
+
+        this.setPMedians(pmedians);
     }
 
     /**
@@ -35,9 +37,6 @@ public class GeneticAlgorithm {
     public void run() {
         // Vytvorenie miest vhodných na umiestňovanie
         this.calculateNumLocations();
-
-        // Výpočet zdrojov
-        this.calculatePMedians();
 
         // Inicializácia populácie
         this.initializePopulation();
@@ -80,15 +79,16 @@ public class GeneticAlgorithm {
             this.calculateFitness();
             this.copyBestSolution();
 
-//            System.out.print("Location indexes: ");
-//            for (int i = 0; i < this.deepCopySolution.length; i++) {
-//                if (this.deepCopySolution[i] == 1) {
-//                    System.out.print(i + " ");
-//                }
-//            }
+            System.out.print("Location indexes: ");
+            for (int i = 0; i < this.deepCopySolution.length; i++) {
+                if (this.deepCopySolution[i] == 1) {
+                    System.out.print(i + " ");
+                }
+            }
 
-            System.out.println("Cost = " + this.deepCopyCost);
+            System.out.println("\nCost = " + this.deepCopyCost);
             System.out.println("Population: " + this.populationSize + " Mutation: " + this.mutationProbability + " Crossover: " + this.crossoverProbability + " TimeLimit: " + this.timeLimit / 1000);
+            System.out.println("-----------------------------------------------------------------------------------");
         }
     }
 
@@ -100,10 +100,10 @@ public class GeneticAlgorithm {
     }
 
     /**
-     * Metóda na výpočet umiestňovacích zdrojov.
+     * Metóda na nastavenie umiestňovacích zdrojov.
      */
-    private void calculatePMedians() {
-        pMedians = (this.numLocations / 100) * 10;
+    private void setPMedians(int pmedians) {
+        pMedians = pmedians;
     }
 
     /**

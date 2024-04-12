@@ -2,8 +2,8 @@ import java.util.Random;
 
 public class SupraMethod {
     private static final Random random = new Random();
-    private static final int MAX_COUNT_AB = 5;   // Maximálny počet krokov bez zmeny
-    private static final int MAX_ITERATIONS = 10;   // Počet iterácii, čo sa vykonajú v metóde Supra
+    private static final int MAX_COUNT_AB = 5;   // Maximálny počet krokov vo fáze generovania skúšok
+    private int max_iterations;   // Počet iterácii, čo sa vykonajú v metóde Supra
     private final double B; // Parameter zabúdania
     private final double C; // Parameter učenia
     private final int max_s; // Maximálny počet generovaných bodov
@@ -13,12 +13,17 @@ public class SupraMethod {
     private double[] initialPoint; // Vektor parametrov počiatočného bodu
     private int initialPointCost; // Na uloženie hodnoty účelovej funkcie počiatočného bodu
     private double[] statisticalGradient; // Štatistický gradient r
+    private int pMedians;   // Počet zdrojov/mediánov
+    private String fileName; // Vstupný Súbor, z ktorého čítame
 
-    public SupraMethod(int s, double B, double C) {
-        GeneticAlgorithm geneticAlgorithm = new GeneticAlgorithm(50, 0.2, 0.2, 20);
+    public SupraMethod(String fileName, int pmedians, int max_iterations, int s, double B, double C) {
+        GeneticAlgorithm geneticAlgorithm = new GeneticAlgorithm(fileName, pmedians,50, 0.2, 0.2, 20);
         geneticAlgorithm.run();
         this.initialPointCost = geneticAlgorithm.getSolutionCost();
         this.p_max = Integer.MAX_VALUE;
+        this.pMedians = pmedians;
+        this.fileName = fileName;
+        this.max_iterations = max_iterations;
 
         this.B = B;
         this.C = C;
@@ -35,7 +40,7 @@ public class SupraMethod {
      * Beh metódy.
      */
     public void runSupraMethod() {
-        for (int i = 0; i < MAX_ITERATIONS; i++) {  //
+        for (int i = 0; i < this.max_iterations; i++) {
             this.firstPhase();
             this.secondPhase(statisticalGradient);  // Po každej iterácii sa výstupný bod z prvej fázy uloží ako nový počiatočný bod
         }
@@ -59,7 +64,7 @@ public class SupraMethod {
             double[] newPoint = this.createNewPoint(r);
 
             // Spustenie genetického algoritmu pre každý vytvorený bod p^kj
-            GeneticAlgorithm geneticAlgorithm = new GeneticAlgorithm((int) newPoint[0], newPoint[1], newPoint[2], (int) newPoint[3]);
+            GeneticAlgorithm geneticAlgorithm = new GeneticAlgorithm( this.fileName, this.pMedians, (int) newPoint[0], newPoint[1], newPoint[2], (int) newPoint[3]);
             geneticAlgorithm.run();
 
             // Aktualizácia hodnôt štatistického gradientu(r), pamäte(w) a ceny bodu
@@ -84,7 +89,7 @@ public class SupraMethod {
             double[] calculatedPoint = calculateNewPoint(alpha, statisticalGradient);
 
             // Vyhodnotí hodnotu účelovej funkcie pre nový bod
-            GeneticAlgorithm geneticAlgorithm = new GeneticAlgorithm((int) calculatedPoint[0], calculatedPoint[1], calculatedPoint[2], (int) calculatedPoint[3]);
+            GeneticAlgorithm geneticAlgorithm = new GeneticAlgorithm( this.fileName, this.pMedians, (int) calculatedPoint[0], calculatedPoint[1], calculatedPoint[2], (int) calculatedPoint[3]);
             geneticAlgorithm.run();
             int newCost = geneticAlgorithm.getSolutionCost();
 
