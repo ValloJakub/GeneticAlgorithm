@@ -9,13 +9,19 @@ public class SupraMethod {
     private final int max_s; // Maximálny počet generovaných bodov
     private double[] w; // Pamäť
     private static final int VECTOR_SIZE = 4;   // Veľkosť vektorov určená podľa počtu potrebných parametrov
-    private int p_max; // Hodnota doteraz najlepšieho nájdeného riešenia
+    private double p_max; // Hodnota najlepšieho nájdeného riešenia
     private double[] initialPoint; // Vektor parametrov počiatočného bodu
-    private int initialPointCost; // Na uloženie hodnoty účelovej funkcie počiatočného bodu
+    private double initialPointCost; // Na uloženie hodnoty účelovej funkcie počiatočného bodu
     private double[] statisticalGradient; // Štatistický gradient r
     private int pMedians;   // Počet zdrojov/mediánov
     private String fileName; // Vstupný Súbor, z ktorého čítame
+    private double[] finalPoint; // Vektor parametrov konečného bodu
+    private int[] deepCopySolution = null; // Kópia najlepšieho riešenia umiestnení (deepcopy)
 
+    /**
+     * Konštruktor metódy Supra.
+     * @param fileName, pmedians, max_iterations, s, B, C
+     */
     public SupraMethod(String fileName, int pmedians, int max_iterations, int s, double B, double C) {
         GeneticAlgorithm geneticAlgorithm = new GeneticAlgorithm(fileName, pmedians,50, 0.2, 0.2, 20);
         geneticAlgorithm.run();
@@ -44,10 +50,8 @@ public class SupraMethod {
             this.firstPhase();
             this.secondPhase(statisticalGradient);  // Po každej iterácii sa výstupný bod z prvej fázy uloží ako nový počiatočný bod
         }
-
-        System.out.println("Best point cost: " + p_max);
-        System.out.println("Population: " + (int) this.initialPoint[0] + ", Mutation probability: " + this.initialPoint[1] + ", Crossover probability: "
-                + this.initialPoint[2] + ", Time limit: " + (int) this.initialPoint[3] + " sec.");
+        this.finalPoint = this.initialPoint;    // Po skončení všetkých iterácii ukladáme najlepší nájdený bod
+        this.printResult();
     }
 
     /**
@@ -80,7 +84,7 @@ public class SupraMethod {
      */
     private void secondPhase(double[] statisticalGradient) {
         int CountAb = 0;      // Počet krokov od posledného zlepšenia
-        double[] alpha = new double[]{generatePopulationSize(), generateMutationProbability(), generateCrossoverProbability(), generateTimeLimit()};         // Dĺžka kroku
+        double[] alpha = new double[]{generatePopulationSize(), generateMutationProbability(), generateCrossoverProbability(), generateTimeLimit()}; // Dĺžka kroku
 
         // Výstupný bod s najlepšou hodnotou účelovej funkcie
         double[] bestPoint = calculateNewPoint(alpha, statisticalGradient);
@@ -91,7 +95,8 @@ public class SupraMethod {
             // Vyhodnotí hodnotu účelovej funkcie pre nový bod
             GeneticAlgorithm geneticAlgorithm = new GeneticAlgorithm( this.fileName, this.pMedians, (int) calculatedPoint[0], calculatedPoint[1], calculatedPoint[2], (int) calculatedPoint[3]);
             geneticAlgorithm.run();
-            int newCost = geneticAlgorithm.getSolutionCost();
+            double newCost = geneticAlgorithm.getSolutionCost();
+            this.deepCopySolution = geneticAlgorithm.getDeepCopySolution(); // uložíme si do atribútu vektor umiestnení
 
             // Ak F(p) < F(p_max), aktualizuj hodnotu p_max a resetuj PocetAb
             if (newCost < p_max) {
@@ -112,6 +117,15 @@ public class SupraMethod {
         this.statisticalGradient = new double[]{0.0, 0.0, 0.0, 0.0};
 
         this.initialPoint = bestPoint;
+    }
+
+    /**
+     * Metóda na výpis výsledku.
+     */
+    private void printResult() {
+        System.out.println("Best point cost: " + this.getP_max());
+        System.out.println("Population: " + (int) this.initialPoint[0] + ", Mutation probability: " + this.initialPoint[1] + ", Crossover probability: "
+                + this.initialPoint[2] + ", Time limit: " + (int) this.initialPoint[3] + " sec.");
     }
 
     /**
@@ -201,7 +215,7 @@ public class SupraMethod {
      * Metóda na aktualizovanie hodnôt štatistického gradientu r, pamäte w a hodnoty doteraz najlepšieho riešenia
      * v 1. fáze metódy Supra.
      */
-    private void updateValues(double[] newPoint, int cost) {
+    private void updateValues(double[] newPoint, double cost) {
         // Aktualizácia hodnoty p_max, ak bolo nájdené lepšie riešenie
         if (cost < p_max) {
             p_max = cost;
@@ -267,5 +281,19 @@ public class SupraMethod {
      */
     public double getP_max() {
         return this.p_max;
+    }
+
+    /**
+     * Metóda na vrátenie konečného bodu.
+     */
+    public double[] getFinalPoint() {
+        return this.finalPoint;
+    }
+
+    /**
+     * Metóda na vrátenie vektora umiestnení najlepšieho riešenia.
+     */
+    public int[] getDeepCopySolution() {
+        return this.deepCopySolution;
     }
 }

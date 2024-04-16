@@ -9,17 +9,19 @@ public class GeneticAlgorithm {
     private int[][] distanceMatrix;     // Matica vzdialeností
     private int numLocations ;      // Počet lokácii na umiestnenie ; na začiatok dáme 10% z celkových umiestnení
     private final long timeLimit;     // na ukončenie behu algoritmu ; Časový limit v sekundách
-    private static int pMedians;      // Počet p-mediánov
+    private int pMedians;      // Počet p-mediánov
     private double crossoverProbability;     // Pravdepodobnosť kríženia
     private static final Random random = new Random();
     private static int[][] population;      // Reprezentácia populácie
     private static int[] fitness;   // Cena každého jedinca v populácii
-    private int[] deepCopySolution = null;      // Kópia najlepšieho riešenia (deepcopy)
-    private int deepCopyCost = Integer.MAX_VALUE;    // Kópia najlepšej ceny (deepcopy)
+    private int[] deepCopySolution = null;      // Kópia najlepšieho riešenia umiestnení(deepcopy)
+    private double deepCopyCost = Integer.MAX_VALUE;    // Kópia najlepšej ceny (deepcopy)
+
+    private double[] parameterVector = null;    // vektor parametrov
 
     /**
      * Konštruktor genetického algoritmu.
-     * @param populationSize, mutationProbability, timeLimit
+     * @param fileName, pmedians, populationSize, mutationProbability, crossoverProbability, timeLimit
      */
     public GeneticAlgorithm(String fileName, int pmedians, int populationSize, double mutationProbability, double crossoverProbability, long timeLimit) {
         this.loadDistanceMatrixFromFile(fileName);
@@ -27,6 +29,9 @@ public class GeneticAlgorithm {
         this.mutationProbability = mutationProbability;
         this.crossoverProbability = crossoverProbability;
         this.timeLimit = timeLimit * 1000; // prevod zo sekúnd na milisekundy
+
+        this.parameterVector = new double[]{this.getPopulationSize(), this.getMutationProbability(),        // ukladanie parametrov do vektora
+                this.getCrossoverProbability(), this.getTimeLimit()};
 
         this.setPMedians(pmedians);
     }
@@ -79,16 +84,7 @@ public class GeneticAlgorithm {
             this.calculateFitness();
             this.copyBestSolution();
 
-            System.out.print("Location indexes: ");
-            for (int i = 0; i < this.deepCopySolution.length; i++) {
-                if (this.deepCopySolution[i] == 1) {
-                    System.out.print(i + " ");
-                }
-            }
-
-            System.out.println("\nCost = " + this.deepCopyCost);
-            System.out.println("Population: " + this.populationSize + " Mutation: " + this.mutationProbability + " Crossover: " + this.crossoverProbability + " TimeLimit: " + this.timeLimit / 1000);
-            System.out.println("-----------------------------------------------------------------------------------");
+            this.printResult();
         }
     }
 
@@ -249,7 +245,7 @@ public class GeneticAlgorithm {
     }
 
     /**
-     * Kópia(hardcopy) najlepšieho rozmiestnenia spoločne s cenou
+     * Kópia(hardcopy) najlepších umiestnení spoločne s cenou
      */
     private void copyBestSolution() {
         int bestIndex = 0;
@@ -279,7 +275,7 @@ public class GeneticAlgorithm {
     /**
      * Metóda na vrátenie ceny riešenia.
      */
-    public int getSolutionCost() {
+    public double getSolutionCost() {
         return this.deepCopyCost;
     }
 
@@ -305,6 +301,23 @@ public class GeneticAlgorithm {
         } catch (FileNotFoundException e) {
             e.printStackTrace();
         }
+    }
+
+    /**
+     * Metóda na výpis výsledku.
+     */
+    private void printResult() {
+        // Výpis indexov umiestnení
+        System.out.print("Location indexes: ");
+        for (int i = 0; i < this.deepCopySolution.length; i++) {
+            if (this.deepCopySolution[i] == 1) {
+                System.out.print(i + " ");
+            }
+        }
+
+        // Výpis parametrov a najlepšieho nájdeného bodu
+        System.out.println("\nCost = " + this.deepCopyCost);
+        System.out.println("Population: " + this.getPopulationSize() + " Mutation: " + this.getMutationProbability() + " Crossover: " + this.getCrossoverProbability() + " TimeLimit: " + this.getTimeLimit());
     }
 
     /**
@@ -334,5 +347,19 @@ public class GeneticAlgorithm {
      */
     public long getTimeLimit() {
         return this.timeLimit / 1000;
+    }
+
+    /**
+     * Metóda na vrátenie vektora parametrov;
+     */
+    public double[] getParameters() {
+        return this.parameterVector;
+    }
+
+    /**
+     * Metóda na vrátenie vektora umiestnení najlepšieho riešenia.
+     */
+    public int[] getDeepCopySolution() {
+        return this.deepCopySolution;
     }
 }
