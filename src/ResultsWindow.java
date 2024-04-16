@@ -22,13 +22,13 @@ public class ResultsWindow extends JFrame {
 
         // Panel pre zobrazenie parametrov a ceny najlepšieho bodu
         JPanel infoPanel = new JPanel(new GridLayout(parameterVector.length + 1, 1));
-        Border border = BorderFactory.createEmptyBorder(10, 10, 10, 10); // Padding od krajov
+        Border border = BorderFactory.createEmptyBorder(10, 10, 10, 10);
         infoPanel.setBorder(BorderFactory.createTitledBorder(border, "Parameters"));
 
         // Vytvoriť názvy parametrov a hodnoty parametrov
         String[] parameterNames = {"Population:", "Mutation Probability:", "Crossover Probability:", "Time Limit (seconds):"};
 
-        // Pridať názvy parametrov a hodnoty parametrov do panelu
+        // Názvy parametrov a hodnoty parametrov v panely
         for (int i = 0; i < parameterVector.length; i++) {
             JLabel parameterNameLabel = new JLabel(parameterNames[i]);
             JLabel parameterValueLabel = new JLabel(String.valueOf(parameterVector[i]));
@@ -51,7 +51,7 @@ public class ResultsWindow extends JFrame {
             infoPanel.add(wrapperPanel);
         }
 
-        // Best Solution
+        // Pridanie Best Solution k parametrom
         JLabel bestPointCostLabel = new JLabel("Best Solution: ");
         JLabel bestPointCostValueLabel = new JLabel(String.valueOf(resultCost));
 
@@ -93,7 +93,6 @@ public class ResultsWindow extends JFrame {
         closeButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
                 setVisible(false);
-                showParameterWindow();
             }
         });
 
@@ -127,14 +126,5 @@ public class ResultsWindow extends JFrame {
         }
         // Nastavenie textu v textovom poli
         resultTextArea.setText(sb.toString());
-    }
-
-    /**
-     * Metóda na zobrazenie okna s parametrami.
-     */
-    private void showParameterWindow() {
-        // Vytvorí novú inštanciu okna s parametrami
-        Gui gui = new Gui();
-        gui.setVisible(true);
     }
 }

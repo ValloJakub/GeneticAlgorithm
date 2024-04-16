@@ -230,6 +230,7 @@ public class GeneticAlgorithm {
      * Výmena bitov na dvoch pozíciach(SWAP).
      * */
     private void mutate(int[] newPopulation) {
+        // Generácia pozície na výmenu
         int position1 = random.nextInt(this.numLocations);
         int position2 = random.nextInt(this.numLocations);
 
@@ -266,7 +267,7 @@ public class GeneticAlgorithm {
     private void copyToNextGeneration(int parent1, int parent2, int[][] newPopulation, int index) {
         System.arraycopy(population[parent1], 0, newPopulation[index], 0, this.numLocations);
 
-        // // Kontrola v prípade nepárnej populácie
+        // Kontrola v prípade nepárnej populácie
         if (index + 1 < newPopulation.length) {
             System.arraycopy(population[parent2], 0, newPopulation[index + 1], 0, this.numLocations);
         }

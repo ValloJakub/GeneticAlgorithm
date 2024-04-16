@@ -5,20 +5,23 @@ import java.awt.*;
 import java.awt.event.*;
 import java.io.File;
 
-public class Gui extends JFrame implements ActionListener {
+public class StartupWindow extends JFrame implements ActionListener {
     private JTextField fileNameField, populationField, mutationField, crossoverField, timeLimitField;
     private JTextField maxIterationField, sField, bField, cField, mediansField;
-    private JButton startButton, browseButton;
+    private JButton startButton, browseButton, exitButton;
     private JCheckBox geneticAlgorithmCheckBox;
+
+    private JPanel supraParameterPanel;
 
     /**
      * Konštruktor triedy pre vytvorenie grafického rozhrania na spustenie algoritmov.
      */
-    public Gui() {
+    public StartupWindow() {
         setTitle("Genetic Algorithm - Supra method");
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setSize(800, 480);
         getRootPane().setBorder(BorderFactory.createMatteBorder(10,10,10,10, Color.DARK_GRAY));
+        setLocationRelativeTo(null); // Okno bude vycentrované
 
         // Panel pre výber súboru
         JPanel filePanel = new JPanel(new FlowLayout());
@@ -32,7 +35,7 @@ public class Gui extends JFrame implements ActionListener {
         filePanel.add(browseButton);
 
         // Panel pre vstup mediánov
-        JPanel medianPanel = new JPanel(new FlowLayout()); // Zmena na FlowLayout
+        JPanel medianPanel = new JPanel(new FlowLayout());
         JLabel mediansLabel = new JLabel("Medians:");
         mediansField = new JTextField("31");
         mediansField.setPreferredSize(new Dimension(50, 30));
@@ -41,6 +44,7 @@ public class Gui extends JFrame implements ActionListener {
 
         // Pridanie checkboxu
         geneticAlgorithmCheckBox = new JCheckBox("Run Genetic Algorithm only", false);
+        geneticAlgorithmCheckBox.addActionListener(this);
         medianPanel.add(geneticAlgorithmCheckBox);
 
         // Panel pre nastavenie parametrov pre genetický algoritmus
@@ -62,7 +66,7 @@ public class Gui extends JFrame implements ActionListener {
         gaParameterPanel.add(timeLimitField);
 
         // Panel pre nastavenie parametrov pre metódu Supra
-        JPanel supraParameterPanel = new JPanel(new GridLayout(5, 2));
+        supraParameterPanel = new JPanel(new GridLayout(5, 2));
         Border supraBorder = BorderFactory.createLineBorder(Color.lightGray);
         supraParameterPanel.setBorder(BorderFactory.createTitledBorder(supraBorder, "Supra Method Parameters"));
         supraParameterPanel.setBackground(Color.lightGray);
@@ -79,114 +83,114 @@ public class Gui extends JFrame implements ActionListener {
         cField = new JTextField("0.3");
         supraParameterPanel.add(cField);
 
-        // Tlačidlo na spustenie
+        // Tlačidlá run na spustenie
         startButton = new JButton("Run");
         startButton.addActionListener(this);
         startButton.setPreferredSize(new Dimension(100, 50));
 
+        // Tlačidlo stop na zastavenie
+        exitButton = new JButton("Exit");
+        exitButton.addActionListener(e -> exitApplication());
+        exitButton.setPreferredSize(new Dimension(100, 50));
+
         // Nastavenie veľkosti písma pre nadpisy
-        Font titleFont = new Font("Arial", Font.BOLD, 16); // Veľkosť 16
+        Font titleFont = new Font("Arial", Font.BOLD, 16);
         ((javax.swing.border.TitledBorder) gaParameterPanel.getBorder()).setTitleFont(titleFont);
         ((javax.swing.border.TitledBorder) supraParameterPanel.getBorder()).setTitleFont(titleFont);
 
         // Rozmiestnenie komponentov
         Container container = getContentPane();
-        container.setLayout(new BorderLayout(5, 5)); // Okraje nastavené na 10
+        container.setLayout(new BorderLayout(5, 5));
 
         // Panel pre nastavenia genetického algoritmu a metódy Supra
-        JPanel gaSupraPanel = new JPanel(new GridLayout(1, 2, 30, 0)); // Pridaná medzera 30 px medzi gridom
-        container.add(gaSupraPanel, BorderLayout.CENTER);
+        JPanel supraPanel = new JPanel(new GridLayout(1, 2, 30, 0));
+        container.add(supraPanel, BorderLayout.CENTER);
 
-        gaSupraPanel.add(gaParameterPanel);
-        gaSupraPanel.add(supraParameterPanel);
+        supraPanel.add(gaParameterPanel);
+        supraPanel.add(supraParameterPanel);
 
-        JPanel fileAndMedianPanel = new JPanel(new GridLayout(2, 1, 30, 30)); // Zmena na GridLayout s medzerami
+        JPanel fileAndMedianPanel = new JPanel(new GridLayout(2, 1, 30, 30));
         fileAndMedianPanel.add(filePanel);
         fileAndMedianPanel.add(medianPanel);
-        container.add(fileAndMedianPanel, BorderLayout.NORTH); // Zmena umiestnenia na NORTH
+        container.add(fileAndMedianPanel, BorderLayout.NORTH);
 
-        container.add(startButton, BorderLayout.SOUTH);
-
-        // Listener pre checkbox
-        geneticAlgorithmCheckBox.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                boolean selected = geneticAlgorithmCheckBox.isSelected();
-                // Ak je checkbox označený, zakáž vstupné polia pre metódu Supra
-                maxIterationField.setEnabled(!selected);
-                sField.setEnabled(!selected);
-                bField.setEnabled(!selected);
-                cField.setEnabled(!selected);
-                supraParameterPanel.setEnabled(!selected);
-
-                // Ak je checkbox označený, deaktivuj všetky komponenty v supraParameterPanel
-                for(Component component : supraParameterPanel.getComponents()) {
-                    component.setEnabled(!selected);
-                }
-            }
-        });
+        JPanel buttonPanel = new JPanel(); // Panel pre tlačidlá
+        buttonPanel.add(startButton);
+        buttonPanel.add(exitButton);
+        container.add(buttonPanel, BorderLayout.SOUTH);
     }
 
+    /**
+     * Metóda na kontrolu vykonanej akcie. Úprava parametrov do rozsahu a kontrola stlačenia tlačidiel.
+     */
     public void actionPerformed(ActionEvent event) {
-        String fileName = fileNameField.getText();
-        int medians = Integer.parseInt(mediansField.getText());
-        // Uprava vstupov do rozsahu
-        int population = Integer.parseInt(populationField.getText());
-        population = Math.max(2, population);
-        population = Math.min(1000, population);
+        if (event.getSource() == geneticAlgorithmCheckBox) {
+            boolean isSelected = geneticAlgorithmCheckBox.isSelected();
+            // Ak je checkbox označený, deaktivuj panel pre metódu Supra
+            supraParameterPanel.setEnabled(!isSelected);
+            for (Component component : supraParameterPanel.getComponents()) {
+                component.setEnabled(!isSelected);
+            }
 
-        double mutation = Double.parseDouble(mutationField.getText());
-        mutation = Math.max(0, mutation);
-        mutation = Math.min(1, mutation);
-        if (mutation < 0.02) mutation = 0.02;
-        if (mutation > 1) mutation = 1;
-
-        double crossover = Double.parseDouble(crossoverField.getText());
-        crossover = Math.max(0.02, crossover);
-        crossover = Math.min(1, crossover);
-        if (crossover < 0.02) crossover = 0.02;
-        if (crossover > 1) crossover = 1;
-
-        int timeLimit = Integer.parseInt(timeLimitField.getText());
-        timeLimit = Math.max(20, timeLimit);
-        timeLimit = Math.min(300, timeLimit);
-
-        int maxIteration = Integer.parseInt(maxIterationField.getText());
-        maxIteration = Math.max(1, maxIteration);
-        maxIteration = Math.min(20, maxIteration);
-
-        int s = Integer.parseInt(sField.getText());
-        s = Math.max(1, s);
-        s = Math.min(20, s);
-
-        double B = Double.parseDouble(bField.getText());
-        B = Math.max(0, B);
-        B = Math.min(2, B);
-
-        double C = Double.parseDouble(cField.getText());
-        C = Math.max(0, C);
-        C = Math.min(1, C);
-
-        // Kontrola, či bol vybratý vstupný súbor
-        if (fileName.isEmpty()) {
-            JOptionPane.showMessageDialog(this, "Please select input file.", "Error", JOptionPane.ERROR_MESSAGE);
-            return;
-        }
-
-        // Spustenie genetického algoritmu alebo metódy Supra podľa toho, či je checkbox označený
-        if (geneticAlgorithmCheckBox.isSelected()) {
-            runGeneticAlgorithm(fileName, medians, population, mutation, crossover, timeLimit);
         } else {
-            runSupraMethod(fileName, medians, maxIteration, s, B, C);
+            String fileName = fileNameField.getText();
+            int medians = Integer.parseInt(mediansField.getText());
+            // Uprava vstupov do rozsahu
+            int population = Integer.parseInt(populationField.getText());
+            population = Math.max(2, population);
+            population = Math.min(1000, population);
+
+            double mutation = Double.parseDouble(mutationField.getText());
+            mutation = Math.max(0, mutation);
+            mutation = Math.min(1, mutation);
+            if (mutation < 0.02) mutation = 0.02;
+            if (mutation > 1) mutation = 1;
+
+            double crossover = Double.parseDouble(crossoverField.getText());
+            crossover = Math.max(0.02, crossover);
+            crossover = Math.min(1, crossover);
+            if (crossover < 0.02) crossover = 0.02;
+            if (crossover > 1) crossover = 1;
+
+            int timeLimit = Integer.parseInt(timeLimitField.getText());
+            timeLimit = Math.max(20, timeLimit);
+            timeLimit = Math.min(300, timeLimit);
+
+            int maxIteration = Integer.parseInt(maxIterationField.getText());
+            maxIteration = Math.max(1, maxIteration);
+            maxIteration = Math.min(20, maxIteration);
+
+            int s = Integer.parseInt(sField.getText());
+            s = Math.max(1, s);
+            s = Math.min(20, s);
+
+            double B = Double.parseDouble(bField.getText());
+            B = Math.max(0, B);
+            B = Math.min(2, B);
+
+            double C = Double.parseDouble(cField.getText());
+            C = Math.max(0, C);
+            C = Math.min(1, C);
+
+            // Kontrola, či bol vybratý vstupný súbor
+            if (fileName.isEmpty()) {
+                JOptionPane.showMessageDialog(this, "Please select input file.", "Error", JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+
+            // Spustenie genetického algoritmu alebo metódy Supra podľa toho, či je checkbox označený
+            if (geneticAlgorithmCheckBox.isSelected()) {
+                runGeneticAlgorithm(fileName, medians, population, mutation, crossover, timeLimit);
+            } else {
+                runSupraMethod(fileName, medians, maxIteration, s, B, C);
+            }
         }
     }
-
     /**
      * Metóda na spustenie genetického algoritmu.
      */
     private void runGeneticAlgorithm(String fileName, int medians, int population, double mutation, double crossover, int timeLimit) {
         GeneticAlgorithm geneticAlgorithm = new GeneticAlgorithm(fileName, medians, population, mutation, crossover, timeLimit);
-        setVisible(false);
         geneticAlgorithm.run();
 
         // Otvorenie okna s výsledkami
@@ -202,7 +206,6 @@ public class Gui extends JFrame implements ActionListener {
      */
     private void runSupraMethod(String fileName, int medians, int maxIteration, int s, double B, double C) {
         SupraMethod supra = new SupraMethod(fileName, medians, maxIteration, s, B, C);
-        setVisible(false);
         supra.runSupraMethod();
 
         // Otvorenie okna s výsledkami
@@ -211,6 +214,13 @@ public class Gui extends JFrame implements ActionListener {
         double resultCost = supra.getP_max();               // posielame najlepšie cenu
         ResultsWindow resultsWindow = new ResultsWindow(parameterVector, resultVector, resultCost);
         resultsWindow.setVisible(true);
+    }
+
+    /**
+     * Metóda na ukončenie aplikácie.
+     */
+    private void exitApplication() {
+        System.exit(0);
     }
 
     /**
@@ -229,12 +239,12 @@ public class Gui extends JFrame implements ActionListener {
     }
 
     /**
-     * Metóda main na spustenie aplikácie.
+     * Main na spustenie aplikácie.
      */
     public static void main(String[] args) {
         SwingUtilities.invokeLater(() -> {
-            Gui gui = new Gui();
-            gui.setVisible(true);
+            StartupWindow startupWindow = new StartupWindow();
+            startupWindow.setVisible(true);
         });
     }
 }

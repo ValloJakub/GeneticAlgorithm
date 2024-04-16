@@ -39,7 +39,7 @@ public class SupraMethod {
         this.statisticalGradient = new double[]{0.0, 0.0, 0.0, 0.0};     // Na začiatku štatistický gradient prázdny/neinicializovaný
 
         this.initialPoint = new double[]{geneticAlgorithm.getPopulationSize(), geneticAlgorithm.getMutationProbability(),
-                                            geneticAlgorithm.getCrossoverProbability(), geneticAlgorithm.getTimeLimit()};
+                geneticAlgorithm.getCrossoverProbability(), geneticAlgorithm.getTimeLimit()};
     }
 
     /**
