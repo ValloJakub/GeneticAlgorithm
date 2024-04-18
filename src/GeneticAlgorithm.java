@@ -6,17 +6,16 @@ import java.util.Scanner;
 public class GeneticAlgorithm {
     private final int populationSize;     // Veľkosť populácie
     private final double mutationProbability;     // Pravdepodobnosť mutácie
+    private double crossoverProbability;     // Pravdepodobnosť kríženial
     private int[][] distanceMatrix;     // Matica vzdialeností
     private int numLocations ;      // Počet lokácii na umiestnenie ; na začiatok dáme 10% z celkových umiestnení
     private final long timeLimit;     // na ukončenie behu algoritmu ; Časový limit v sekundách
     private int pMedians;      // Počet p-mediánov
-    private double crossoverProbability;     // Pravdepodobnosť kríženia
     private static final Random random = new Random();
     private static int[][] population;      // Reprezentácia populácie
     private static int[] fitness;   // Cena každého jedinca v populácii
     private int[] deepCopySolution = null;      // Kópia najlepšieho riešenia umiestnení(deepcopy)
     private double deepCopyCost = Integer.MAX_VALUE;    // Kópia najlepšej ceny (deepcopy)
-
     private double[] parameterVector = null;    // vektor parametrov
 
     /**
@@ -24,7 +23,7 @@ public class GeneticAlgorithm {
      * @param fileName, pmedians, populationSize, mutationProbability, crossoverProbability, timeLimit
      */
     public GeneticAlgorithm(String fileName, int pmedians, int populationSize, double mutationProbability, double crossoverProbability, long timeLimit) {
-        this.loadDistanceMatrixFromFile(fileName);
+        this.loadDistanceMatrix(fileName);
         this.populationSize = populationSize;
         this.mutationProbability = mutationProbability;
         this.crossoverProbability = crossoverProbability;
@@ -283,7 +282,7 @@ public class GeneticAlgorithm {
     /**
      * Metóda na načítanie matice vzdialeností zo súboru.
      */
-    public void loadDistanceMatrixFromFile(String fileName) {
+    public void loadDistanceMatrix(String fileName) {
         try {
             Scanner scanner = new Scanner(new File(fileName));
             // Prvé dve hodnoty sú rozmer matice

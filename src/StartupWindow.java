@@ -10,7 +10,6 @@ public class StartupWindow extends JFrame implements ActionListener {
     private JTextField maxIterationField, sField, bField, cField, mediansField;
     private JButton startButton, browseButton, exitButton;
     private JCheckBox geneticAlgorithmCheckBox;
-
     private JPanel supraParameterPanel;
 
     /**
